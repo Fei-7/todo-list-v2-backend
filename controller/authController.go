@@ -5,6 +5,7 @@ import (
 	"backend/model"
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,7 +16,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const SecretKey = "secret_mafuk"
+var SecretKey = os.Getenv("JWTTOKENSECRETKEY")
 
 func Register(c *fiber.Ctx) error {
 	var data map[string]string
