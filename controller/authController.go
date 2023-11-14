@@ -5,6 +5,7 @@ import (
 	"backend/model"
 	"context"
 	"fmt"
+	"net/mail"
 	"os"
 	"time"
 
@@ -18,6 +19,27 @@ import (
 
 var SecretKey = os.Getenv("JWTTOKENSECRETKEY")
 
+var requireRegister = []string{"name", "email", "password"}
+
+func checkValidInput(require []string, data map[string]string) (string, bool) {
+	for i := 0; i < len(require); i++ {
+		_, ok := data[require[i]]
+		if !ok {
+			return "input not complete", false
+		}
+	}
+
+	return "success", true
+}
+
+func isValidMailAddress(address string) bool {
+	_, err := mail.ParseAddress(address)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func Register(c *fiber.Ctx) error {
 	var data map[string]string
 
@@ -25,6 +47,22 @@ func Register(c *fiber.Ctx) error {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
 			"message": "Internal error",
+		})
+	}
+
+	message, ok := checkValidInput(requireRegister, data)
+
+	if !ok {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": message,
+		})
+	}
+
+	if !isValidMailAddress(data["email"]) {
+		c.Status(fiber.ErrBadRequest.Code)
+		return c.JSON(fiber.Map{
+			"message": "Invalid email",
 		})
 	}
 
