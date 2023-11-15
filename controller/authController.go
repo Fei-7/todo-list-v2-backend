@@ -20,6 +20,7 @@ import (
 var SecretKey = os.Getenv("JWTTOKENSECRETKEY")
 
 var requireRegister = []string{"name", "email", "password"}
+var requireLogin = []string{"email", "password"}
 
 func checkValidInput(require []string, data map[string]string) (string, bool) {
 	for i := 0; i < len(require); i++ {
@@ -34,10 +35,7 @@ func checkValidInput(require []string, data map[string]string) (string, bool) {
 
 func isValidMailAddress(address string) bool {
 	_, err := mail.ParseAddress(address)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func Register(c *fiber.Ctx) error {
@@ -99,6 +97,21 @@ func Login(c *fiber.Ctx) error {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
 			"message": "Internal error",
+		})
+	}
+
+	message, ok := checkValidInput(requireLogin, data)
+	if !ok {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": message,
+		})
+	}
+
+	if !isValidMailAddress(data["email"]) {
+		c.Status(fiber.ErrBadRequest.Code)
+		return c.JSON(fiber.Map{
+			"message": "Invalid email",
 		})
 	}
 
