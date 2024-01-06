@@ -11,16 +11,25 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var SecretKey = os.Getenv("JWTTOKENSECRETKEY")
+var SecretKey string
 
 var requireRegister = []string{"name", "email", "password"}
 var requireLogin = []string{"email", "password"}
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+	SecretKey = os.Getenv("JWTTOKENSECRETKEY")
+}
 
 func checkValidInput(require []string, data map[string]string) (string, bool) {
 	for i := 0; i < len(require); i++ {
